@@ -1,3 +1,6 @@
+#!/bin/bash
+
+
 # This will download all the files that user "mz4250" has on his shapeways account
 # Possible bugs:
 #   1. It will choke if it's not able to download something due to it not being free to download... I think, I might fix that at some point
