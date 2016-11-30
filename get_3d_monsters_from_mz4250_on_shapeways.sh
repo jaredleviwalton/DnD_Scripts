@@ -47,8 +47,8 @@
     
 
 # Shapeways.com login info:
-username=YOUR_USERNAME
-password=YOUR_PASSWORD
+username=$1
+password=$2
 
 # Shapeways.com user page:
 user_page=https://www.shapeways.com/designer/mz4250
