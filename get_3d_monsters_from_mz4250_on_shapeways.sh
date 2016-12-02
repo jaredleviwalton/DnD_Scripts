@@ -51,8 +51,8 @@ username=$1
 password=$2
 
 # Shapeways.com user page:
-user_page=https://www.shapeways.com/designer/mz4250
-user=`basename ${user_page}`
+user_page=https://www.shapeways.com/designer/mz4250/creations
+user=mz4250
 
 # Setup proxies if needed.
 # export http_proxy=YOUR_PROXY
