@@ -39,9 +39,8 @@
 
 
 # Shapeways.com login info:
-cookie_file=$1
-username=$2
-password=$3
+username=$1
+password=$2
 
 # stuff we need
 zip_download_dir=./ZIP_files
@@ -54,7 +53,7 @@ extract_item_from_zip () {
 
 download_item () {
     mkdir -p ${zip_download_dir}
-    wget --referer="https://www.shapeways.com/login" --cookies=on --keep-session-cookies --load-cookies=${cookie_file} -O ${zip_download_dir}/$1.zip https://www.shapeways.com/product/download/$1
+    wget --referer="https://www.shapeways.com/login/json-shapeways" --cookies=on --keep-session-cookies --load-cookies=cookies.txt -O ${zip_download_dir}/$1.zip https://www.shapeways.com/product/download/$1
 
     extract_item_from_zip ${zip_download_dir}/$1.zip
 }   
@@ -73,7 +72,8 @@ get_items_to_download_from_page () {
 
 # Start
 # Login to shapeways.com
-#wget https://www.shapeways.com/login -O logon.html --cookies=on --keep-session-cookies --save-cookies cookies.txt --post-data 'username='${username}'&password='${password}
+#echo "Logging in to shapeways..."
+#wget https://www.shapeways.com/login/json-shapeways --quiet --delete-after --cookies=on --keep-session-cookies --save-cookies cookies.txt --post-data "username=${username}&password=${password}"
 
 # Determine all the product sub-pages
 # Begin by getting a list of the page navigation links. Only the first few and the last will be shown
