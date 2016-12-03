@@ -17,6 +17,10 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+# Program created directories
+STL_files/
+ZIP_files/
+
 # =========================
 # Operating System Files
 # =========================
@@ -45,3 +49,9 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
+
+# Linux 
+# =========================
+
+*.swp
+
