@@ -21,6 +21,9 @@ $RECYCLE.BIN/
 STL_files/
 ZIP_files/
 
+# Necessary cookies file
+cookies.txt
+
 # =========================
 # Operating System Files
 # =========================
