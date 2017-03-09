@@ -61,8 +61,8 @@ download_item () {
 get_items_to_download_from_page () {
     # Crawl sub-page for products
     item_IDs=(`wget -q $1 -O - | \
-        grep -i -o 'href="http://www.shapeways.com/product/.*=user-profile"' | \
-        sed -n 's|.*href="http://www.shapeways.com/product/\([A-Za-z0-9]\+\).*|\1|p' | \
+        grep -i -o 'href="https://www.shapeways.com/product/.*=user-profile"' | \
+        sed -n 's|.*href="https://www.shapeways.com/product/\([A-Za-z0-9]\+\).*|\1|p' | \
         uniq`)
 
     for item in "${item_IDs[@]}"; do
