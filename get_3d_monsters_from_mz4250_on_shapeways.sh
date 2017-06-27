@@ -2,22 +2,14 @@
 
 
 # This will download all the files that user "mz4250" has on his shapeways account
-# Possible bugs:
-#   1. It will choke if it's not able to download something due to it not being free to download... I think, I might fix that at some point
-# 
 #
 # Rough how to:
 # If you have access to a linux or unix computer this script should work 
 # (I wrote and used this on my windows PC with cygwin). 
 # But you might need to install "unzip" and "wget"; how to do this will vary depending on distro.
 # If you have a windows system, I'd recommend installing cygwin, be sure to search for, and select/check, "unzip" and "wget" when selecting packages to install.
-# Once you download the script you'll want to update some code:
-# 1. for lines 2 and 3 you'll want enter your shapeways user name and password in place of "YOUR_USERNAME" and "YOUR_PASSWORD". 
 # It's important to note if you log-in to shapeways via google, you'll need to change how you login by selecting "Shapeways username and password" 
 # on https://www.shapeways.com/settings/account. It's probably the same with facebook...
-# 2. You'll probably want to delete lines 10 and 11, the ones with export proxy stuff. It's not likely your behind a proxy.
-# 3. Now save the file and run it!
-# 4. To run the script open up a console (or cygwin), navigate to where you saved the file (for cygwin something like "cd /cygdrive/d/GitHub/DnD_Scripts/") and type: "./get_3d_monsters_from_mz4250_on_shapeways.sh"
 
 # The files will be downloaded into a sub folder called "STL_files" this is where the extracted 3D files are. 
 # The zip files with funny names will be in the "ZIP_files" folder, 
@@ -44,22 +36,13 @@
 #       
 #       NOTE:
 #           I didn't test this with linux or cygwin, but it *should* still work...
-    
+
 
 # Shapeways.com login info:
-username=YOUR_USERNAME
-password=YOUR_PASSWORD
-
-# Shapeways.com user page:
-user_page=https://www.shapeways.com/designer/mz4250
-user=`basename ${user_page}`
-
-# Setup proxies if needed.
-# export http_proxy=YOUR_PROXY
-# export https_proxy=YOUR_PROXY
+username=$1
+password=$2
 
 # stuff we need
-webpage_domain=https://www.shapeways.com
 zip_download_dir=./ZIP_files
 stl_extract_dir=./STL_files
 
@@ -69,62 +52,45 @@ extract_item_from_zip () {
 }
 
 download_item () {
-    item_name=(`echo $1 | awk -F/ '{print $5}'`)
-    
     mkdir -p ${zip_download_dir}
-    wget --referer="https://www.shapeways.com/login" --cookies=on --keep-session-cookies --load-cookies=cookies.txt -O ${zip_download_dir}/${item_name}.zip https://www.shapeways.com/product/download/${item_name}
+    wget --referer="https://www.shapeways.com/login/json-shapeways" --cookies=on --keep-session-cookies --load-cookies=cookies.txt -O ${zip_download_dir}/$1.zip https://www.shapeways.com/product/download/$1
 
-    extract_item_from_zip ${zip_download_dir}/${item_name}.zip
+    extract_item_from_zip ${zip_download_dir}/$1.zip
 }   
 
 get_items_to_download_from_page () {
-
     # Crawl sub-page for products
-    page_links=(`wget -q $1 -O - | \
-        tr "\t\r\n'" '   "' | \
-        grep -i -o '<a[^>]\+href[ ]*=[ \t]*"\(ht\|f\)tps\?:[^"]\+"' | \
-        sed -n 's/.*href="\([^"]*\).*/\1/p'`)
+    item_IDs=(`wget -q $1 -O - | \
+        grep -i -o 'href="https://www.shapeways.com/product/.*=user-profile"' | \
+        sed -n 's|.*href="https://www.shapeways.com/product/\([A-Za-z0-9]\+\).*|\1|p' | \
+        uniq`)
 
-    items_to_download=()
-    for link in "${page_links[@]}"
-    do
-        if [[ ${link} =~ .*www.shapeways.com/product/.* ]]
-            then
-            # Check if item already in array
-            if [[ ! " ${items_to_download[@]} " =~ " ${link} " ]]; then
-                items_to_download+=($link)
-            fi
-        fi
-    done
-
-    for item in "${items_to_download[@]}"
-    do
+    for item in "${item_IDs[@]}"; do
         download_item ${item}
     done
 }
 
 # Start
 # Login to shapeways.com
-wget https://www.shapeways.com/login -O logon.html --cookies=on --keep-session-cookies --save-cookies cookies.txt --post-data 'username='${username}'&password='${password}
+#echo "Logging in to shapeways..."
+#wget https://www.shapeways.com/login/json-shapeways --quiet --delete-after --cookies=on --keep-session-cookies --save-cookies cookies.txt --post-data "username=${username}&password=${password}"
 
-# Crawl page for "more-products" (each user sub-page)
+# Determine all the product sub-pages
+# Begin by getting a list of the page navigation links. Only the first few and the last will be shown
+user_page="https://www.shapeways.com/designer/mz4250/creations?s=0#more-products"
 user_page_links=(`wget -q ${user_page} -O - | \
-    tr "\t\r\n'" '   "' | \
-    grep -i -o '<a[^>]\+href[ ]*=[ \t]*"/[^"]\+"' | \
+    grep -i 'href="/designer/mz4250/creations?s=[0-9]\+#more-products"' | \
     sed -n 's/.*href="\([^"]*\).*/\1/p'`)
 
-pages_to_check=()
-for user_page_link in "${user_page_links[@]}"
-do
-    if [[ ${user_page_link} =~ .*/designer/${user}.*more-products.* ]]
-        then
-        pages_to_check+=(${webpage_domain}${user_page_link})
-    fi
-done
+models_per_page=`echo ${user_page_links[1]} | sed -n 's/.*?s=\([0-9]\+\).*/\1/p'`
+# This is second-to-last instead of last because of the "next" button, which should be ignored
+models_at_last_page=`echo ${user_page_links[-2]} | sed -n 's/.*?s=\([0-9]\+\).*/\1/p'`
+num_pages=`expr $models_at_last_page  / $models_per_page + 1`
 
-# Foreach sub-page, download all products
-for page in "${pages_to_check[@]}"
-do
+for ((i=0 ; i < $num_pages ; i++)); do
+    num=`expr $i \* $models_per_page`
+    page="https://www.shapeways.com/designer/mz4250/creations?s=${num}#more-products"
     get_items_to_download_from_page ${page}
 done
+
 # Finish
